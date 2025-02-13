@@ -120,7 +120,7 @@ function MenuPage({
       const updatedItems = item.id
         ? menu.items.map((i) => (i.id === item.id ? item : i))
         : [...menu.items, { ...item, id: Math.random().toString(), isAvailable: true }];
-      
+
       setMenu({ ...menu, items: updatedItems });
     }
   };
@@ -214,7 +214,7 @@ function MenuPage({
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
-                    {categoryItems.map((item) => (
+                    {categoryItems.map((item: any) => (
                       <div
                         key={item.id}
                         className="flex justify-between items-start p-4 hover:bg-muted/50 rounded-lg transition-colors"
