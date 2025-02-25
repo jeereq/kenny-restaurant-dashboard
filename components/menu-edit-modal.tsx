@@ -7,32 +7,41 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Edit } from "lucide-react"
+import { useFetchData } from "@/hooks/use-data"
+import useToast from "@/hooks/use-toast"
 
 interface MenuEditModalProps {
   menu: {
-    id: string
+    id?: string
     name: string
     description: string
-    isActive: boolean
+    documentId?: string,
+    categories?: any[]
+    items?: any[]
   }
   onSave: (menu: any) => void
 }
 
 export function MenuEditModal({ menu, onSave }: MenuEditModalProps) {
   const [open, setOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState(menu)
+  const { error: errorMessage, success: successMessage } = useToast()
+  const { fetch: actionsMenu, loading } = useFetchData({ uri: `menus/${menu.documentId}` })
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    setLoading(true)
-    
-    // Simulation de sauvegarde
-    setTimeout(() => {
-      onSave(formData)
-      setLoading(false)
+    const updatedItem: any = { name: "", description: "" }
+    updatedItem.description = formData.description
+    updatedItem.name = formData.name
+    const { data: { data }, error } = await actionsMenu(updatedItem, "put");
+    if (data) {
+      onSave(data)
+      successMessage("Le menu a été mis à jour avec succès !")
       setOpen(false)
-    }, 1000)
+    } else {
+      errorMessage("Une erreur s'est produite lors de la mise à jour du menu !")
+    }
+
   }
 
   return (

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { MenuEditModal } from "@/components/menu-edit-modal";
 import { ItemModal } from "@/components/item-modal";
 import Image from "next/image";
+import { useFetchData } from "@/hooks/use-data";
 
 interface Category {
   id: string;
@@ -25,72 +26,18 @@ interface MenuItem {
   imageUrl?: string;
   isAvailable: boolean;
   categoryId: string;
+  type?: string;
 }
 
 interface Menu {
   id: string;
+  documentId: string;
   name: string;
   description: string;
   isActive: boolean;
   categories: Category[];
   items: MenuItem[];
 }
-
-const mockMenu: Menu = {
-  id: "1",
-  name: "Menu du Midi",
-  description: "Disponible du lundi au vendredi, de 12h à 14h30",
-  isActive: true,
-  categories: [
-    {
-      id: "1",
-      name: "Entrées",
-      description: "Nos entrées fraîches et de saison",
-      orderIndex: 0
-    },
-    {
-      id: "2",
-      name: "Plats",
-      description: "Nos plats principaux",
-      orderIndex: 1
-    },
-    {
-      id: "3",
-      name: "Desserts",
-      description: "Pour terminer en douceur",
-      orderIndex: 2
-    }
-  ],
-  items: [
-    {
-      id: "1",
-      name: "Salade César",
-      description: "Laitue romaine, croûtons, parmesan, sauce César maison",
-      price: 12.50,
-      imageUrl: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=800&auto=format&fit=crop&q=60",
-      isAvailable: true,
-      categoryId: "1"
-    },
-    {
-      id: "2",
-      name: "Steak Frites",
-      description: "Steak de bœuf, frites maison, sauce au poivre",
-      price: 24.90,
-      imageUrl: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&auto=format&fit=crop&q=60",
-      isAvailable: true,
-      categoryId: "2"
-    },
-    {
-      id: "3",
-      name: "Crème Brûlée",
-      description: "Crème vanille, caramel croustillant",
-      price: 8.50,
-      imageUrl: "https://images.unsplash.com/photo-1470324161839-ce2bb6fa6bc3?w=800&auto=format&fit=crop&q=60",
-      isAvailable: true,
-      categoryId: "3"
-    }
-  ]
-};
 
 function MenuPage({
   params,
@@ -99,14 +46,16 @@ function MenuPage({
 }) {
   const router = useRouter();
   const [menu, setMenu] = useState<Menu | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { fetch: fetchMenus, loading } = useFetchData({ uri: `api-infos/flat/get` })
 
   useEffect(() => {
     // Simulation de chargement des données
-    setTimeout(() => {
-      setMenu(mockMenu);
-      setLoading(false);
-    }, 500);
+    (async function () {
+      const { data: { data } } = await fetchMenus({ menuId: params.menuId }, "post")
+      if (data) {
+        setMenu(data);
+      }
+    })()
   }, [params.menuId]);
 
   const handleMenuUpdate = (updatedMenu: Partial<Menu>) => {
@@ -193,7 +142,7 @@ function MenuPage({
         <div className="space-y-8">
           {menu.categories.map((category) => {
             const categoryItems = menu.items.filter(
-              (item) => item.categoryId === category.id
+              (item) => item.type === category.id
             );
 
             return (
@@ -207,7 +156,7 @@ function MenuPage({
                       )}
                     </div>
                     <ItemModal
-                      categoryId={category.id}
+                      type={category.id}
                       onSave={(item) => handleItemSave(category.id, item)}
                     />
                   </div>
@@ -220,10 +169,10 @@ function MenuPage({
                         className="flex justify-between items-start p-4 hover:bg-muted/50 rounded-lg transition-colors"
                       >
                         <div className="flex gap-4 flex-1">
-                          {item.imageUrl && (
+                          {item.picture && (
                             <div className="relative w-20 h-20 rounded-lg overflow-hidden">
                               <Image
-                                src={item.imageUrl}
+                                src={item.picture}
                                 alt={item.name}
                                 fill
                                 className="object-cover"
@@ -233,7 +182,7 @@ function MenuPage({
                           <div className="flex-1">
                             <div className="flex justify-between">
                               <h4 className="font-medium">{item.name}</h4>
-                              <p className="font-medium">{item.price.toFixed(2)} €</p>
+                              <p className="font-medium">{item.price.toFixed(2)} $</p>
                             </div>
                             {item.description && (
                               <p className="text-sm text-muted-foreground mt-1">
@@ -249,7 +198,7 @@ function MenuPage({
                         </div>
                         <div className="ml-4">
                           <ItemModal
-                            categoryId={category.id}
+                            type={category.id}
                             item={item}
                             onSave={(updatedItem) => handleItemSave(category.id, updatedItem)}
                           />
