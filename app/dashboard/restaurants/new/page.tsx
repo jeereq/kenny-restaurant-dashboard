@@ -10,30 +10,40 @@ import { Textarea } from "@/components/ui/textarea";
 import { ImageUpload } from "@/components/ui/image-upload";
 import { ArrowLeft, Utensils } from "lucide-react";
 import Link from "next/link";
+import { useFetchData } from "@/hooks/use-data";
+import useApp from "@/hooks/use-app";
+import useToast from "@/hooks/use-toast";
+import { uploadChunk } from "@/lib/utils";
 
 export default function NewRestaurantPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { app: { user } } = useApp()
   const [image, setImage] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false)
+  const { fetch: newRestaurant } = useFetchData({ uri: "restaurants" })
+  const { success: successMessage, error: errorMessage } = useToast()
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
-
+    setLoading(true)
     const formData = new FormData(e.currentTarget);
+    const imageResponse: any = await uploadChunk(image) || null
     const restaurant = {
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       address: formData.get("address") as string,
-      phone: formData.get("phone") as string,
-      image: image
+      phoneNumber: formData.get("phone") as string,
+      picture: imageResponse ? imageResponse.url : "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop",
+      owner: user?.id
     };
-
-    // Simulation de création
-    setTimeout(() => {
-      router.push("/dashboard");
-      setLoading(false);
-    }, 1000);
+    if (!user?.id) delete restaurant.owner
+    const { error } = await newRestaurant(restaurant, "post")
+    setLoading(false)
+    if (!error) {
+      successMessage("Le restaurant a été créé !")
+      router.push("/dashboard")
+    }
+    else errorMessage("La création du restaurant a échoué !")
   }
 
   return (
@@ -86,6 +96,7 @@ export default function NewRestaurantPage() {
                   id="description"
                   name="description"
                   placeholder="Une courte description de votre restaurant"
+                  required
                   rows={3}
                 />
               </div>
@@ -95,6 +106,7 @@ export default function NewRestaurantPage() {
                 <Textarea
                   id="address"
                   name="address"
+                  required
                   placeholder="123 rue de la Paix, 75000 Paris"
                   rows={2}
                 />
@@ -105,6 +117,7 @@ export default function NewRestaurantPage() {
                 <Input
                   id="phone"
                   name="phone"
+                  required
                   type="tel"
                   placeholder="+33 1 23 45 67 89"
                 />

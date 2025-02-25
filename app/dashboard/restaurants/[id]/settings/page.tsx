@@ -20,6 +20,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import { useFetchData } from "@/hooks/use-data";
+import useToast from "@/hooks/use-toast";
 
 interface Restaurant {
   id: string;
@@ -29,28 +31,28 @@ interface Restaurant {
   phone: string;
 }
 
-const mockRestaurant: Restaurant = {
-  id: "1",
-  name: "Le Bistrot Parisien",
-  description: "Cuisine française traditionnelle",
-  address: "123 rue de la Paix, 75000 Paris",
-  phone: "+33 1 23 45 67 89",
-};
-
 export default function RestaurantSettingsPage({
   params,
+  searchParams
 }: {
   params: { id: string };
+
+  searchParams: { docId: string }
+
 }) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   const [restaurant, setRestaurant] = useState<Restaurant | null>(null);
+  const { fetch: fetchRestaurants } = useFetchData({ uri: `restaurants?filters[id][$eq]=${params.id}` })
+  const { fetch: actionsRestaurant, loading } = useFetchData({ uri: `restaurants/${searchParams.docId}` })
+  const { success: successMessage } = useToast()
 
   useEffect(() => {
-    // Simulation de chargement des données
-    setTimeout(() => {
-      setRestaurant(mockRestaurant);
-    }, 500);
+    (async function () {
+      const { data: { data: [data] } } = await fetchRestaurants()
+      if (data) {
+        setRestaurant({ ...data, phone: data.phoneNumber })
+      }
+    })()
   }, [params.id]);
 
   if (!restaurant) {
@@ -63,29 +65,31 @@ export default function RestaurantSettingsPage({
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const updatedRestaurant = {
-      ...restaurant,
       name: formData.get("name") as string,
       description: formData.get("description") as string,
       address: formData.get("address") as string,
-      phone: formData.get("phone") as string,
+      phoneNumber: formData.get("phone") as string,
     };
 
-    // Simulation de mise à jour
-    setTimeout(() => {
-      router.push("/dashboard");
-      setLoading(false);
-    }, 1000);
+    const { data } = await actionsRestaurant(updatedRestaurant, "put")
+    if (data) {
+      successMessage("Votre restaurant a été modifier !")
+    }
   }
 
   function handleDelete() {
     // Simulation de suppression
-    setTimeout(() => {
-      router.push("/dashboard");
-    }, 1000);
+    (async function () {
+      const { error } = await actionsRestaurant({}, "delete")
+      if (!error) {
+        successMessage("Votre restaurant a été supprimer !")
+        router.push("/dashboard");
+      }
+    })()
+
   }
 
   return (

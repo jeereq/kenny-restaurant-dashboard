@@ -18,7 +18,7 @@ export const useFetchData = ({ uri }: { uri: string }) => {
                     response = await API.post(uri, { data });
                     break;
                 case "PUT":
-                    response = await API.put(uri, data);
+                    response = await API.put(uri, { data });
                     break;
                 case "DELETE":
                     response = await API.delete(uri, { data });
