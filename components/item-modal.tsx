@@ -10,15 +10,19 @@ import { Plus } from "lucide-react"
 import { uploadChunk } from "@/lib/utils"
 import { useFetchData } from "@/hooks/use-data"
 import useToast from "@/hooks/use-toast"
+import { useParams } from "next/navigation"
+import { Method } from "@/types/default"
 
 interface ItemModalProps {
   type: string
   onSave: (item: any) => void
   item?: {
     id: string
+    documentId: string
     name: string
     description: string
     price: number
+    promotionalPrice: number
     picture?: string
   }
 }
@@ -26,29 +30,57 @@ interface ItemModalProps {
 export function ItemModal({ type, onSave, item }: ItemModalProps) {
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const params = useParams()
   const [image, setImage] = useState<File | null>(null)
   const { fetch: actionsFlat } = useFetchData({ uri: "flats" })
+  const { fetch: updateFlat } = useFetchData({ uri: `flats/${item ? item?.documentId : ""}` })
   const { success: successMessage, error: errorMessage } = useToast()
   const [formData, setFormData] = useState(
     item || {
       name: "",
       description: "",
       price: 0,
+      promotionalPrice: 0,
       picture: "https://images.unsplash.com/photo-1514933651103-005eec06c04b?q=80&w=1974&auto=format&fit=crop",
       type
     }
   )
+  async function getMethod(data: any, method: Method) {
+    delete data.id
+    delete data.documentId
+    delete data.isAvailable
+    delete data.updatedAt
+    delete data.createdAt
+
+    switch (method.toUpperCase()) {
+      case "POST":
+        return actionsFlat({
+          ...data
+        }, method)
+      case "PUT":
+        return updateFlat({
+          ...data
+        }, method)
+
+      default:
+        return { data: null, error: null }
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     const method = item ? "put" : "post"
     const imageResponse: any = image ? await uploadChunk(image) : null
-    console.log(formData)
-    const { data: dataResponse, error } = await actionsFlat({
+    const data = {
       ...formData,
-      picture: imageResponse ? imageResponse.url : formData.picture
+      picture: imageResponse ? imageResponse.url : formData.picture,
+      menu: params.menuId 
+    }
+    const { data: dataResponse, error } = await getMethod({
+      ...data
     }, method)
+
     if (error) {
       errorMessage(item ? "Une erreur s'est produite lors de la mise à jour du plat !" : "Une erreur s'est produite lors de la création du plat !")
     } else {
@@ -58,7 +90,7 @@ export function ItemModal({ type, onSave, item }: ItemModalProps) {
     setOpen(false)
     if (dataResponse) {
       const { data }: any = dataResponse
-      onSave(data)
+      onSave({ ...data, isAvailable: true })
     }
 
   }

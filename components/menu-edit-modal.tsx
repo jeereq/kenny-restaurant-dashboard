@@ -33,7 +33,7 @@ export function MenuEditModal({ menu, onSave }: MenuEditModalProps) {
     const updatedItem: any = { name: "", description: "" }
     updatedItem.description = formData.description
     updatedItem.name = formData.name
-    const { data: { data }, error } = await actionsMenu(updatedItem, "put");
+    const { data: { data } } = await actionsMenu(updatedItem, "put");
     if (data) {
       onSave(data)
       successMessage("Le menu a été mis à jour avec succès !")

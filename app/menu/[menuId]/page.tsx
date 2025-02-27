@@ -1,9 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Utensils } from "lucide-react";
 import Image from "next/image";
+import { useFetchData } from "@/hooks/use-data";
 
 interface Category {
   id: string;
@@ -54,6 +55,12 @@ const mockMenu: Menu = {
       name: "Desserts",
       description: "Pour terminer en douceur",
       orderIndex: 2
+    },
+    {
+      id: "4",
+      name: "Accompagnements",
+      description: "Pour terminer en douceur",
+      orderIndex: 3
     }
   ],
   items: [
@@ -92,19 +99,21 @@ export default function PublicMenuPage({
 }: {
   params: { menuId: string };
 }) {
-  const [menu, setMenu] = useState<Menu | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [menu, setMenu] = useState<any | null>(null);
   const [activeCategory, setActiveCategory] = useState<string>("");
 
+  const { fetch: fetchMenus, loading } = useFetchData({ uri: `api-infos/flat/get` })
   useEffect(() => {
     // Simulation de chargement des données
-    setTimeout(() => {
-      setMenu(mockMenu);
-      if (mockMenu.categories.length > 0) {
-        setActiveCategory(mockMenu.categories[0].id);
+    (async function () {
+      const { data: { data } } = await fetchMenus({ menuId: params.menuId }, "post")
+      if (data) {
+        setMenu(data);
+        if (mockMenu.categories.length > 0) {
+          setActiveCategory(mockMenu.categories[0].id);
+        }
       }
-      setLoading(false);
-    }, 500);
+    })()
   }, [params.menuId]);
 
   useEffect(() => {
@@ -157,7 +166,7 @@ export default function PublicMenuPage({
           <div className="flex flex-col items-center justify-center space-y-2">
             <div className="flex items-center justify-center space-x-3">
               <Utensils className="h-8 w-8" />
-              <h1 className="text-3xl font-bold tracking-tight">MenuQR</h1>
+              <h1 className="text-3xl font-bold tracking-tight">Chill lounge</h1>
             </div>
             <div className="text-center">
               <h2 className="text-2xl font-semibold tracking-tight">{menu.name}</h2>
@@ -170,15 +179,14 @@ export default function PublicMenuPage({
       <nav className="sticky top-[120px] bg-background/80 backdrop-blur-md z-[5] border-b">
         <div className="container mx-auto px-4 py-2 overflow-x-auto">
           <div className="flex space-x-6 justify-start md:justify-center min-w-max px-4">
-            {menu.categories.map((category) => (
+            {menu.categories.map((category: any) => (
               <a
                 key={category.id}
                 href={`#${category.id}`}
-                className={`text-sm font-medium transition-colors whitespace-nowrap py-2 border-b-2 ${
-                  activeCategory === category.id
-                    ? "border-primary text-primary"
-                    : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
-                }`}
+                className={`text-sm font-medium transition-colors whitespace-nowrap py-2 border-b-2 ${activeCategory === category.id
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
+                  }`}
               >
                 {category.name}
               </a>
@@ -189,9 +197,9 @@ export default function PublicMenuPage({
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
         <div className="space-y-16">
-          {menu.categories.map((category) => {
+          {menu.categories.map((category: any) => {
             const categoryItems = menu.items.filter(
-              (item) => item.categoryId === category.id && item.isAvailable
+              (item: any) => item.type === category.id
             );
 
             if (categoryItems.length === 0) return null;
@@ -209,15 +217,15 @@ export default function PublicMenuPage({
                   )}
                 </div>
                 <div className="grid gap-8 sm:gap-6">
-                  {categoryItems.map((item) => (
+                  {categoryItems.map((item: any) => (
                     <div
                       key={item.id}
                       className="group relative flex flex-col sm:flex-row gap-6 items-start p-4 rounded-xl hover:bg-accent/50 transition-all duration-300"
                     >
-                      {item.imageUrl && (
+                      {item.picture && (
                         <div className="relative w-full sm:w-32 h-48 sm:h-32 rounded-lg overflow-hidden shadow-md transition-transform group-hover:scale-105 duration-300">
                           <Image
-                            src={item.imageUrl}
+                            src={item.picture}
                             alt={item.name}
                             fill
                             className="object-cover"
@@ -230,7 +238,7 @@ export default function PublicMenuPage({
                             {item.name}
                           </h4>
                           <p className="font-medium text-lg whitespace-nowrap">
-                            {item.price.toFixed(2)} €
+                            {item.price.toFixed(2)} Fc
                           </p>
                         </div>
                         {item.description && (
@@ -250,7 +258,7 @@ export default function PublicMenuPage({
 
       <footer className="border-t py-6 mt-16 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Propulsé par MenuQR</p>
+          <p>Propulsé par Chill lounge</p>
         </div>
       </footer>
     </div>

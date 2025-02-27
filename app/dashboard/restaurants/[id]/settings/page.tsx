@@ -98,7 +98,7 @@ export default function RestaurantSettingsPage({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-2">
             <Utensils className="h-6 w-6" />
-            <h1 className="text-2xl font-bold">MenuQR</h1>
+            <h1 className="text-2xl font-bold">Chill lounge</h1>
           </div>
         </div>
       </header>

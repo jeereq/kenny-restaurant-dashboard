@@ -10,6 +10,7 @@ import { MenuEditModal } from "@/components/menu-edit-modal";
 import { ItemModal } from "@/components/item-modal";
 import Image from "next/image";
 import { useFetchData } from "@/hooks/use-data";
+import { Method } from "@/types/default";
 
 interface Category {
   id: string;
@@ -44,9 +45,9 @@ function MenuPage({
 }: {
   params: { id: string; menuId: string };
 }) {
-  const router = useRouter();
   const [menu, setMenu] = useState<Menu | null>(null);
-  const { fetch: fetchMenus, loading } = useFetchData({ uri: `api-infos/flat/get` })
+  const [loading, setLoading] = useState(true)
+  const { fetch: fetchMenus, loading: loadingFetch } = useFetchData({ uri: `api-infos/flat/get` })
 
   useEffect(() => {
     // Simulation de chargement des données
@@ -58,17 +59,22 @@ function MenuPage({
     })()
   }, [params.menuId]);
 
+  useEffect(function () {
+    setLoading(loadingFetch)
+  }, [loadingFetch])
+
   const handleMenuUpdate = (updatedMenu: Partial<Menu>) => {
     if (menu) {
       setMenu({ ...menu, ...updatedMenu });
     }
   };
 
-  const handleItemSave = (categoryId: string, item: MenuItem) => {
+  const handleItemSave = (method: Method, item: MenuItem) => {
+    console.log(item)
     if (menu) {
-      const updatedItems = item.id
+      const updatedItems = method == "put"
         ? menu.items.map((i) => (i.id === item.id ? item : i))
-        : [...menu.items, { ...item, id: Math.random().toString(), isAvailable: true }];
+        : [...menu.items, { ...item, isAvailable: true }];
 
       setMenu({ ...menu, items: updatedItems });
     }
@@ -88,7 +94,7 @@ function MenuPage({
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-xl font-medium text-center mb-4">
-              Menu introuvable
+              Menu introuvable ou en cours de chargement
             </p>
             <Link href={`/dashboard/restaurants/${params.id}/menus`}>
               <Button variant="secondary">
@@ -108,7 +114,7 @@ function MenuPage({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-2">
             <Utensils className="h-6 w-6" />
-            <h1 className="text-2xl font-bold">MenuQR</h1>
+            <h1 className="text-2xl font-bold">Chill lounge</h1>
           </div>
         </div>
       </header>
@@ -157,7 +163,7 @@ function MenuPage({
                     </div>
                     <ItemModal
                       type={category.id}
-                      onSave={(item) => handleItemSave(category.id, item)}
+                      onSave={(item) => handleItemSave("post", item)}
                     />
                   </div>
                 </CardHeader>
@@ -182,7 +188,7 @@ function MenuPage({
                           <div className="flex-1">
                             <div className="flex justify-between">
                               <h4 className="font-medium">{item.name}</h4>
-                              <p className="font-medium">{item.price.toFixed(2)} $</p>
+                              <p className="font-medium">{item.price.toFixed(2)} Fc</p>
                             </div>
                             {item.description && (
                               <p className="text-sm text-muted-foreground mt-1">
@@ -200,7 +206,7 @@ function MenuPage({
                           <ItemModal
                             type={category.id}
                             item={item}
-                            onSave={(updatedItem) => handleItemSave(category.id, updatedItem)}
+                            onSave={(updatedItem) => handleItemSave("put", updatedItem)}
                           />
                         </div>
                       </div>

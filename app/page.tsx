@@ -10,7 +10,7 @@ export default function Home() {
         <div className="flex flex-col items-center justify-center space-y-8 text-center">
           <div className="flex items-center space-x-2">
             <Utensils className="h-12 w-12" />
-            <h1 className="text-4xl font-bold">MenuQR</h1>
+            <h1 className="text-4xl font-bold">Chill lounge</h1>
           </div>
           
           <Card className="w-full max-w-md">
