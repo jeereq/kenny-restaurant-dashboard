@@ -7,6 +7,7 @@ import { ArrowLeft, QrCode, Utensils } from "lucide-react";
 import Link from "next/link";
 import { MenuModal } from "@/components/menu-modal";
 import { QRCodeModal } from "@/components/qr-code-modal";
+import { useFetchData } from "@/hooks/use-data";
 
 interface Menu {
   id: string;
@@ -15,41 +16,27 @@ interface Menu {
   isActive: boolean;
 }
 
-const mockMenus: Menu[] = [
-  {
-    id: "1",
-    name: "Menu du Midi",
-    description: "Disponible du lundi au vendredi, de 12h à 14h30",
-    isActive: true
-  },
-  {
-    id: "2",
-    name: "Carte des Vins",
-    description: "Notre sélection de vins français et internationaux",
-    isActive: true
-  }
-];
-
 export default function RestaurantMenusPage({
   params,
 }: {
   params: { id: string };
 }) {
   const [menus, setMenus] = useState<Menu[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { fetch: fetchMenus, loading } = useFetchData({ uri: `menus?filters[restaurant][id][$eq]=${params.id}` })
 
   useEffect(() => {
     // Simulation de chargement des données
-    setTimeout(() => {
-      setMenus(mockMenus);
-      setLoading(false);
-    }, 500);
+    (async function () {
+      const { data: { data } } = await fetchMenus()
+      if (data.length != 0) {
+        setMenus(data);
+      }
+    })()
   }, [params.id]);
 
-  const handleSaveMenu = (menu: Omit<Menu, "id">) => {
+  const handleSaveMenu = (menu: Menu) => {
     const newMenu = {
       ...menu,
-      id: Math.random().toString(),
     };
     setMenus([...menus, newMenu]);
   };
@@ -68,7 +55,7 @@ export default function RestaurantMenusPage({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-2">
             <Utensils className="h-6 w-6" />
-            <h1 className="text-2xl font-bold">MenuQR</h1>
+            <h1 className="text-2xl font-bold">Chill lounge</h1>
           </div>
         </div>
       </header>

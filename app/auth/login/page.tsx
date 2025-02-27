@@ -1,30 +1,38 @@
 "use client"
-
-import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
+import { useFetchData } from "@/hooks/use-data";
+import useApp from "@/hooks/use-app";
+import useToast from "@/hooks/use-toast";
+import { DEFAULT_ERROR_MESSAGE } from "@/lib/utils";
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const { setAuth } = useApp()
+  const { error: errorMessage } = useToast()
+  const { fetch: fetchLogin, loading } = useFetchData({ uri: "auth/login" });
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setLoading(true);
 
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
     // Simulation de connexion
-    setTimeout(() => {
-      router.push("/dashboard");
-      setLoading(false);
-    }, 1000);
+    (async function () {
+      const { data, error } = await fetchLogin({ email, password }, "post");
+      if (!error && data) {
+        setAuth(data)
+        router.push("/dashboard");
+      } else {
+        errorMessage(error || DEFAULT_ERROR_MESSAGE)
+      }
+    })()
   }
 
   return (

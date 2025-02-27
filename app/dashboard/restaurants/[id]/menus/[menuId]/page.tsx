@@ -9,6 +9,8 @@ import { useRouter } from "next/navigation";
 import { MenuEditModal } from "@/components/menu-edit-modal";
 import { ItemModal } from "@/components/item-modal";
 import Image from "next/image";
+import { useFetchData } from "@/hooks/use-data";
+import { Method } from "@/types/default";
 
 interface Category {
   id: string;
@@ -25,10 +27,12 @@ interface MenuItem {
   imageUrl?: string;
   isAvailable: boolean;
   categoryId: string;
+  type?: string;
 }
 
 interface Menu {
   id: string;
+  documentId: string;
   name: string;
   description: string;
   isActive: boolean;
@@ -36,78 +40,28 @@ interface Menu {
   items: MenuItem[];
 }
 
-const mockMenu: Menu = {
-  id: "1",
-  name: "Menu du Midi",
-  description: "Disponible du lundi au vendredi, de 12h à 14h30",
-  isActive: true,
-  categories: [
-    {
-      id: "1",
-      name: "Entrées",
-      description: "Nos entrées fraîches et de saison",
-      orderIndex: 0
-    },
-    {
-      id: "2",
-      name: "Plats",
-      description: "Nos plats principaux",
-      orderIndex: 1
-    },
-    {
-      id: "3",
-      name: "Desserts",
-      description: "Pour terminer en douceur",
-      orderIndex: 2
-    }
-  ],
-  items: [
-    {
-      id: "1",
-      name: "Salade César",
-      description: "Laitue romaine, croûtons, parmesan, sauce César maison",
-      price: 12.50,
-      imageUrl: "https://images.unsplash.com/photo-1550304943-4f24f54ddde9?w=800&auto=format&fit=crop&q=60",
-      isAvailable: true,
-      categoryId: "1"
-    },
-    {
-      id: "2",
-      name: "Steak Frites",
-      description: "Steak de bœuf, frites maison, sauce au poivre",
-      price: 24.90,
-      imageUrl: "https://images.unsplash.com/photo-1600891964092-4316c288032e?w=800&auto=format&fit=crop&q=60",
-      isAvailable: true,
-      categoryId: "2"
-    },
-    {
-      id: "3",
-      name: "Crème Brûlée",
-      description: "Crème vanille, caramel croustillant",
-      price: 8.50,
-      imageUrl: "https://images.unsplash.com/photo-1470324161839-ce2bb6fa6bc3?w=800&auto=format&fit=crop&q=60",
-      isAvailable: true,
-      categoryId: "3"
-    }
-  ]
-};
-
 function MenuPage({
   params,
 }: {
   params: { id: string; menuId: string };
 }) {
-  const router = useRouter();
   const [menu, setMenu] = useState<Menu | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true)
+  const { fetch: fetchMenus, loading: loadingFetch } = useFetchData({ uri: `api-infos/flat/get` })
 
   useEffect(() => {
     // Simulation de chargement des données
-    setTimeout(() => {
-      setMenu(mockMenu);
-      setLoading(false);
-    }, 500);
+    (async function () {
+      const { data: { data } } = await fetchMenus({ menuId: params.menuId }, "post")
+      if (data) {
+        setMenu(data);
+      }
+    })()
   }, [params.menuId]);
+
+  useEffect(function () {
+    setLoading(loadingFetch)
+  }, [loadingFetch])
 
   const handleMenuUpdate = (updatedMenu: Partial<Menu>) => {
     if (menu) {
@@ -115,11 +69,12 @@ function MenuPage({
     }
   };
 
-  const handleItemSave = (categoryId: string, item: MenuItem) => {
+  const handleItemSave = (method: Method, item: MenuItem) => {
+    console.log(item)
     if (menu) {
-      const updatedItems = item.id
+      const updatedItems = method == "put"
         ? menu.items.map((i) => (i.id === item.id ? item : i))
-        : [...menu.items, { ...item, id: Math.random().toString(), isAvailable: true }];
+        : [...menu.items, { ...item, isAvailable: true }];
 
       setMenu({ ...menu, items: updatedItems });
     }
@@ -139,7 +94,7 @@ function MenuPage({
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center justify-center py-12">
             <p className="text-xl font-medium text-center mb-4">
-              Menu introuvable
+              Menu introuvable ou en cours de chargement
             </p>
             <Link href={`/dashboard/restaurants/${params.id}/menus`}>
               <Button variant="secondary">
@@ -159,7 +114,7 @@ function MenuPage({
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center space-x-2">
             <Utensils className="h-6 w-6" />
-            <h1 className="text-2xl font-bold">MenuQR</h1>
+            <h1 className="text-2xl font-bold">Chill lounge</h1>
           </div>
         </div>
       </header>
@@ -193,7 +148,7 @@ function MenuPage({
         <div className="space-y-8">
           {menu.categories.map((category) => {
             const categoryItems = menu.items.filter(
-              (item) => item.categoryId === category.id
+              (item) => item.type === category.id
             );
 
             return (
@@ -207,8 +162,8 @@ function MenuPage({
                       )}
                     </div>
                     <ItemModal
-                      categoryId={category.id}
-                      onSave={(item) => handleItemSave(category.id, item)}
+                      type={category.id}
+                      onSave={(item) => handleItemSave("post", item)}
                     />
                   </div>
                 </CardHeader>
@@ -220,10 +175,10 @@ function MenuPage({
                         className="flex justify-between items-start p-4 hover:bg-muted/50 rounded-lg transition-colors"
                       >
                         <div className="flex gap-4 flex-1">
-                          {item.imageUrl && (
+                          {item.picture && (
                             <div className="relative w-20 h-20 rounded-lg overflow-hidden">
                               <Image
-                                src={item.imageUrl}
+                                src={item.picture}
                                 alt={item.name}
                                 fill
                                 className="object-cover"
@@ -233,7 +188,7 @@ function MenuPage({
                           <div className="flex-1">
                             <div className="flex justify-between">
                               <h4 className="font-medium">{item.name}</h4>
-                              <p className="font-medium">{item.price.toFixed(2)} €</p>
+                              <p className="font-medium">{item.price.toFixed(2)} Fc</p>
                             </div>
                             {item.description && (
                               <p className="text-sm text-muted-foreground mt-1">
@@ -249,9 +204,9 @@ function MenuPage({
                         </div>
                         <div className="ml-4">
                           <ItemModal
-                            categoryId={category.id}
+                            type={category.id}
                             item={item}
-                            onSave={(updatedItem) => handleItemSave(category.id, updatedItem)}
+                            onSave={(updatedItem) => handleItemSave("put", updatedItem)}
                           />
                         </div>
                       </div>
