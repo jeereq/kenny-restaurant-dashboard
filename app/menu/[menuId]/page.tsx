@@ -101,15 +101,17 @@ export default function PublicMenuPage({
 }) {
   const [menu, setMenu] = useState<any | null>(null);
   const [menus, setMenus] = useState([])
+  const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState<string>("");
-  const { fetch: fetchMenus, loading } = useFetchData({ uri: `api-infos/flat/get` })
-  const { fetch: fetchListOfMenus, loading: loadingListOfMenus } = useFetchData({ uri: `menus` })
+  const { fetch: fetchMenus } = useFetchData({ uri: `api-infos/flat/get` })
+  const { fetch: fetchListOfMenus } = useFetchData({ uri: `menus` })
   useEffect(() => {
     // Simulation de chargement des données
     (async function () {
+      setLoading(true)
       const { data: { data } } = await fetchMenus({ menuId: params.menuId }, "post")
       const { data: { data: dataMenus } } = await fetchListOfMenus({ menuId: params.menuId }, "get")
-      console.log(dataMenus)
+
       if (dataMenus) {
         setMenus(dataMenus)
       }
@@ -119,6 +121,7 @@ export default function PublicMenuPage({
           setActiveCategory(mockMenu.categories[0].id);
         }
       }
+      setLoading(false)
     })()
   }, [params.menuId]);
 
