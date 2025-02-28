@@ -78,7 +78,7 @@ export function MenuEditModal({ menu, onSave }: MenuEditModalProps) {
           <div className="flex justify-end space-x-2">
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Annuler
-            </Button>
+            </Button>z
             <Button type="submit" disabled={loading}>
               {loading ? "Enregistrement..." : "Enregistrer"}
             </Button>
