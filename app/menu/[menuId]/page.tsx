@@ -100,13 +100,19 @@ export default function PublicMenuPage({
   params: { menuId: string };
 }) {
   const [menu, setMenu] = useState<any | null>(null);
+  const [menus, setMenus] = useState([])
   const [activeCategory, setActiveCategory] = useState<string>("");
-
   const { fetch: fetchMenus, loading } = useFetchData({ uri: `api-infos/flat/get` })
+  const { fetch: fetchListOfMenus, loading: loadingListOfMenus } = useFetchData({ uri: `menus` })
   useEffect(() => {
     // Simulation de chargement des données
     (async function () {
       const { data: { data } } = await fetchMenus({ menuId: params.menuId }, "post")
+      const { data: { data: dataMenus } } = await fetchListOfMenus({ menuId: params.menuId }, "get")
+      console.log(dataMenus)
+      if (dataMenus) {
+        setMenus(dataMenus)
+      }
       if (data) {
         setMenu(data);
         if (mockMenu.categories.length > 0) {
@@ -178,12 +184,26 @@ export default function PublicMenuPage({
 
       <nav className="sticky top-[120px] bg-background/80 backdrop-blur-md z-[5] border-b">
         <div className="container mx-auto px-4 py-2 overflow-x-auto">
+          <div className="flex space-x-6 justify-start md:justify-center min-w-max px-4  border-b">
+            {menus.map((category: any) => (
+              <a
+                key={category.id}
+                href={`/menu/${category.id}`}
+                className={`text-sm uppercase font-medium transition-colors whitespace-nowrap py-2 border-b-2 ${params.menuId == category.id
+                  ? "border-primary text-primary"
+                  : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
+                  }`}
+              >
+                {category.name}
+              </a>
+            ))}
+          </div>
           <div className="flex space-x-6 justify-start md:justify-center min-w-max px-4">
             {menu.categories.map((category: any) => (
               <a
                 key={category.id}
                 href={`#${category.id}`}
-                className={`text-sm font-medium transition-colors whitespace-nowrap py-2 border-b-2 ${activeCategory === category.id
+                className={`text-xs font-medium uppercase transition-colors whitespace-nowrap py-2 border-b-2 ${activeCategory === category.id
                   ? "border-primary text-primary"
                   : "border-transparent text-muted-foreground hover:text-foreground hover:border-muted-foreground"
                   }`}
