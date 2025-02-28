@@ -8,7 +8,7 @@ import "react-toastify/dist/ReactToastify.css";
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Restaurant Menu QR',
+  title: 'Restaurant Chill lounge',
   description: 'Digital menu management system with QR codes',
   manifest: '/manifest.json',
   themeColor: '#000000',
