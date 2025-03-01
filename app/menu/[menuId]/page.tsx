@@ -280,7 +280,7 @@ export default function PublicMenuPage({
 
       <footer className="border-t py-6 mt-16 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Chill lounge</p>
+          <p>Restaurant Chill lounge</p>
         </div>
       </footer>
     </div>
