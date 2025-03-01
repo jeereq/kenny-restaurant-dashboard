@@ -106,7 +106,6 @@ export default function PublicMenuPage({
   const { fetch: fetchMenus } = useFetchData({ uri: `api-infos/flat/get` })
   const { fetch: fetchListOfMenus } = useFetchData({ uri: `menus` })
   useEffect(() => {
-    // Simulation de chargement des données
     (async function () {
       setLoading(true)
       const { data: { data } } = await fetchMenus({ menuId: params.menuId }, "post")
