@@ -39,28 +39,106 @@ const mockMenu: Menu = {
   isActive: true,
   categories: [
     {
-      id: "1",
+      id: "entries",
       name: "Entrées",
       description: "Nos entrées fraîches et de saison",
       orderIndex: 0
     },
     {
-      id: "2",
+      id: "dishes",
       name: "Plats",
       description: "Nos plats principaux",
       orderIndex: 1
     },
     {
-      id: "3",
+      id: "desserts",
       name: "Desserts",
       description: "Pour terminer en douceur",
       orderIndex: 2
     },
     {
-      id: "4",
+      id: "accompaniments",
       name: "Accompagnements",
-      description: "Pour terminer en douceur",
+      description: "Fraîcheur et créativité, nos accompagnements vous surprendront.",
       orderIndex: 3
+    },
+    {
+      id: "boissons",
+      name: "Boissons",
+      description: "Une palette de saveurs à découvrir.",
+      orderIndex: 4
+    },
+    {
+      id: "cocktails",
+      name: "Cocktails",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 5
+    },
+    {
+      id: "snacks",
+      name: "Snacks",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 6
+    },
+    {
+      id: "pizza",
+      name: "Pizza",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 7
+    },
+    {
+      id: "viandes",
+      name: "Viandes",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 8
+    },
+    {
+      id: "pates",
+      name: "Pates",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 9
+    },
+    {
+      id: "poissons",
+      name: "Poissons",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 10
+    },
+    {
+      id: "legumes",
+      name: "Legumes",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 11
+    },
+    {
+      id: "sauces",
+      name: "Sauces",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 12
+    },
+    {
+      id: "vins",
+      name: "Vins",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 13
+    },
+    {
+      id: "whisky",
+      name: "Whisky",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 14
+    },
+    {
+      id: "champagnes",
+      name: "Champagnes",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 15
+    },
+    {
+      id: "rhums-&-tequilas",
+      name: "Rhums & Tequilas",
+      description: "Explorez notre carte, savourez l'instant.",
+      orderIndex: 16
     }
   ],
   items: [
@@ -106,7 +184,6 @@ export default function PublicMenuPage({
   const { fetch: fetchMenus } = useFetchData({ uri: `api-infos/flat/get` })
   const { fetch: fetchListOfMenus } = useFetchData({ uri: `menus` })
   useEffect(() => {
-    // Simulation de chargement des données
     (async function () {
       setLoading(true)
       const { data: { data } } = await fetchMenus({ menuId: params.menuId }, "post")
@@ -184,10 +261,9 @@ export default function PublicMenuPage({
           </div>
         </div>
       </header>
-
       <nav className="sticky top-[120px] bg-background/80 backdrop-blur-md z-[5] border-b">
-        <div className="container mx-auto px-4 py-2 overflow-x-auto">
-          <div className="flex space-x-6 justify-start md:justify-center min-w-max px-4  border-b">
+        <div className="w-11/12 lg:w-10/12 mx-auto px-4 py-2 overflow-x-auto">
+          <div className="flex space-x-6 justify-start justify-center min-w-max px-4  border-b">
             {menus.map((category: any) => (
               <a
                 key={category.id}
@@ -201,6 +277,9 @@ export default function PublicMenuPage({
               </a>
             ))}
           </div>
+        </div>
+        <div className="w-11/12 lg:w-10/12 mx-auto px-4 py-2 overflow-x-auto">
+
           <div className="flex space-x-6 justify-start md:justify-center min-w-max px-4">
             {menu.categories.map((category: any) => (
               <a
@@ -281,7 +360,7 @@ export default function PublicMenuPage({
 
       <footer className="border-t py-6 mt-16 bg-white/80 backdrop-blur-md">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>Propulsé par Chill lounge</p>
+          <p>Restaurant Chill lounge</p>
         </div>
       </footer>
     </div>
